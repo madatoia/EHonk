@@ -27,7 +27,7 @@ public class Activate extends Activity {
 	Button add;
 	EditText newCarNo;
 	Button deactivate;
-	ArrayList<String> cars;
+	ArrayList<String> cars = new ArrayList<String>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +39,6 @@ public class Activate extends Activity {
 			
 			String line = data.readLine(); // telephone no
 
-			line = data.readLine();
 			while ((line = data.readLine()) != null) {
 				cars.add(line);
 			}
@@ -78,10 +77,10 @@ public class Activate extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				String searchCar = (String) spin.getSelectedItem();
+				String selectedCar = (String) spin.getSelectedItem();
 
-				Toast.makeText(getApplicationContext(), "Searching: "
-						+ searchCar, Toast.LENGTH_SHORT);
+			//	Toast.makeText(getApplicationContext(), "Searching: "
+			//			+ searchCar, Toast.LENGTH_SHORT);
 			}
 
 		});
