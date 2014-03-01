@@ -27,6 +27,7 @@ import android.widget.Toast;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 
 public class Activate extends Activity {
 
@@ -38,8 +39,7 @@ public class Activate extends Activity {
 	ArrayList<String> cars = new ArrayList<String>();
 	double latitude, longitude;
 	Context mCtext;
-	boolean activated = false;
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -50,20 +50,16 @@ public class Activate extends Activity {
 			BufferedReader data = new BufferedReader(new InputStreamReader(
 					openFileInput(Constants.PROFILE_FILE_NAME)));
 
-			String line = data.readLine(); // telephone no
-
+			String line;
+			
 			while ((line = data.readLine()) != null) {
-				if (!line.subSequence(0, 2).equals("id"))
-					cars.add(line);
-				else {
-					activated = true;
-				}
+					if(!line.equals("\n"))
+						cars.add(line);
 			}
 			data.close();
-			cars.clear();
-			Toast.makeText(getApplicationContext(),
-					"You have already activated an other car",
-					Toast.LENGTH_LONG).show();
+		} catch (IOException e) {
+			
+		} finally {
 			spin = (Spinner) findViewById(R.id.spinner1);
 
 			ArrayAdapter<String> dataAdapter = new ArrayAdapter<String>(this,
@@ -76,12 +72,7 @@ public class Activate extends Activity {
 			addListenerOnSpinnerItemSelection();
 			addListenerOnSearch();
 			addListenerOnView();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-
 	}
 
 	public void addListenerOnSpinnerItemSelection() {
@@ -99,8 +90,11 @@ public class Activate extends Activity {
 
 			@Override
 			public void onClick(View v) {
-
-				if (!activated) {
+				
+				SharedPreferences prefs = getPreferences(MODE_PRIVATE); 
+				String restoredText = prefs.getString("id", "-1");
+				
+				if (restoredText.equals("-1")) {
 					String selectedCar = (String) spin.getSelectedItem();
 
 					Toast.makeText(getApplicationContext(),
@@ -123,19 +117,11 @@ public class Activate extends Activity {
 					// TRIMITE MESAJ SERVER
 
 					// dupa raspuns;
-					String id = "id";
-					try {
-						BufferedWriter data = new BufferedWriter(
-								new OutputStreamWriter(openFileOutput(
-										Constants.PROFILE_FILE_NAME,
-										Context.MODE_APPEND)));
-						data.append("\n" + id);
-						data.close();
-
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					String id = "";
+				
+						SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+						editor.putString("id", id);
+						editor.commit();
 				} else {
 					Toast.makeText(getApplicationContext(),
 							"You have already activated an other car",
@@ -160,6 +146,9 @@ public class Activate extends Activity {
 					ArrayList<String> list = new ArrayList<String>();
 					list.add(newCarStr);
 					list.addAll(cars);
+					cars.add(newCarStr);
+					
+					newCarNo.setText("");
 
 					// scriu in fisier data
 					try {
@@ -168,7 +157,7 @@ public class Activate extends Activity {
 								new OutputStreamWriter(openFileOutput(
 										Constants.PROFILE_FILE_NAME,
 										Context.MODE_APPEND)));
-						data.append("\n" + newCarStr);
+						data.append(newCarStr+"\n");
 						data.close();
 
 					} catch (FileNotFoundException e) {
@@ -206,37 +195,20 @@ public class Activate extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TRIMITE MESAJ DEACTIVARE
-				File inFile = new File(Constants.PROFILE_FILE_NAME);
-				File outFile = new File("temp.txt");
-				try {
-					BufferedReader data = new BufferedReader(new FileReader(
-							inFile));
-
-					BufferedWriter temp = new BufferedWriter(new FileWriter(
-							outFile));
-
-					String line = data.readLine(); // telephone no
-					while ((line = data.readLine()) != null) {
-						if (!line.subSequence(0, 2).equals("id")) {
-							temp.write(line);
-						}
-					}
-
-					temp.close();
-					data.close();
-
-					outFile.renameTo(inFile);
-				} catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				SharedPreferences prefs = getPreferences(MODE_PRIVATE); 
+				String restoredText = prefs.getString("id", "-1");
+				
+				if (restoredText.equals("-1")) {
+					Toast.makeText(mCtext, "No car activated", Toast.LENGTH_SHORT).show();
+				} else {
+					Toast.makeText(mCtext, "Car deactivated", Toast.LENGTH_SHORT).show();
+					SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
+					editor.putString("id", "-1");
+					editor.commit();
 				}
 			}
 		});
 	}
-
 }
 
 class CustomOnItemSelectedListener implements OnItemSelectedListener {
