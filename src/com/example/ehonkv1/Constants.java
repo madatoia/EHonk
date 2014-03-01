@@ -56,6 +56,9 @@ public class Constants {
 	public static boolean checkCarNo(String carNo) {
 		boolean ok = true;
 
+		if(REGION_LIST.size()==0)
+			populate();
+		
 		carNo.toLowerCase();
 		if (carNo.length() < 5)
 			return false;

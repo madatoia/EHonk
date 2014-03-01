@@ -21,14 +21,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/textView1"
+        android:layout_alignRight="@+id/textView1"
         android:layout_below="@+id/textView1"
         android:text="Activate" />
-    
+
         <Button
-        android:id="@+id/buttonSearch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/buttonActivate"
-        android:layout_below="@+id/buttonActivate"
-        android:text="Search Car" />
+            android:id="@+id/buttonSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/buttonActivate"
+            android:layout_alignBottom="@+id/buttonActivate"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@+id/buttonActivate"
+            android:text="Search Car" />
+
 </RelativeLayout>

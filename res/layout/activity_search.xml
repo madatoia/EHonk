@@ -32,8 +32,7 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/editText1"
         android:layout_below="@+id/editText1"
-        android:text="Search" />
-
-    
+        android:text="This car blocked me" />
+        
 
 </RelativeLayout>
