@@ -8,7 +8,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,7 +19,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.StrictMode;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -29,8 +28,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class SearchCar extends Activity {
-	
+public class SearchCar extends FragmentActivity implements LocationListener {
+
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
 
@@ -53,12 +52,20 @@ public class SearchCar extends Activity {
 	}
 	
 	@Override
+	protected void onStop() {
+		super.onStop();
+		if (locationManager != null) {
+            locationManager.removeUpdates(this);
+        }
+	}
+	
+	@Override
 	protected void onStart() {
 	    super.onStart();
 	    
 	    locationManager = 
 	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-	    boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+	    boolean isGPSEnabled = (locationManager != null) && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 	    
 	    if (!isGPSEnabled) {
 	        // Create a dialog here that requests the user to enable GPS, and use an intent
@@ -123,6 +130,12 @@ public class SearchCar extends Activity {
 	        alertDialog.show();
 	    }
 	    Log.v("isGPSEnabled", "=" + isNetworkEnabled);
+	    
+	    // bind location client to locationManager
+	    locationManager.requestLocationUpdates(
+                LocationManager.NETWORK_PROVIDER,
+                MIN_TIME_BW_UPDATES,
+                MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 	}
 
 	private String readStream(InputStream in) {
@@ -161,23 +174,15 @@ public class SearchCar extends Activity {
 				String carNo = insertCarNumber.getText().toString();
 				// 	check carNo and phone
 				ok = Constants.checkCarNo(carNo);
-				
-				/*
-                locationManager.requestLocationUpdates(
-                        LocationManager.GPS_PROVIDER,
-                        MIN_TIME_BW_UPDATES,
-                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new MyLocationListener());
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                String longitude = ""+location.getLongitude();
-                String latitude = ""+location.getLatitude();
-                */
-				String longitude = "22";
-				String latitude = "44";
+
 				if(!ok) {
 					Toast.makeText(getApplicationContext(), "Wrong format",
 							Toast.LENGTH_LONG).show();
 				}
 				else {
+					Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+					String longitude = "" + location.getLongitude();
+					String latitude = "" + location.getLatitude();
 					String addr = "http://141.85.223.25:3000/search.json";
 					new RequestTask().execute(addr, carNo, latitude, longitude);
 				}
@@ -249,26 +254,29 @@ public class SearchCar extends Activity {
         	}
        }
     }
-    
-    private class MyLocationListener implements LocationListener {
 
-        @Override
-        public void onLocationChanged(Location loc) {
-            
-        	Toast.makeText(
-                    getBaseContext(),
-                    "Location changed: Lat: " + loc.getLatitude() + " Lng: "
-                        + loc.getLongitude(), Toast.LENGTH_SHORT).show();
-        }
+	@Override
+	public void onLocationChanged(Location location) {
+		// TODO Auto-generated method stub
+		
+	}
 
-        @Override
-        public void onProviderDisabled(String provider) {}
+	@Override
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
 
-        @Override
-        public void onProviderEnabled(String provider) {}
+	@Override
+	public void onProviderEnabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
 
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {}
-    }
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
