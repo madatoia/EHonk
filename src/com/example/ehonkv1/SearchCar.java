@@ -139,28 +139,28 @@ public class SearchCar extends FragmentActivity implements LocationListener {
 	}
 
 	private String readStream(InputStream in) {
-		  BufferedReader reader = null;
-		  String msg = "";
-		  try {
-		    reader = new BufferedReader(new InputStreamReader(in));
+		BufferedReader reader = null;
+		String msg = "";
+		try {
+			reader = new BufferedReader(new InputStreamReader(in));
 		    String line = "";
 		    while ((line = reader.readLine()) != null) {
 		    	msg += line;
 		    }
-		  } catch (IOException e) {
-		    e.printStackTrace();
-		  } finally {
-		    if (reader != null) {
-		      try {
-		        reader.close();
-		      } catch (IOException e) {
-		        e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
 		        }
 		    }
 		  }
 		  
 		  return msg;
-		} 
+	}
 
 	public void addListenerOnSearch() {
 
