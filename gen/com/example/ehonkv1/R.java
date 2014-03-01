@@ -27,11 +27,10 @@ public final class R {
         public static final int selector=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f080010;
+        public static final int action_settings=0x7f08000f;
         public static final int addNewCar=0x7f080002;
         public static final int button1=0x7f08000d;
         public static final int buttonActivate=0x7f080007;
-        public static final int buttonCall=0x7f08000f;
         public static final int buttonDeactivate=0x7f080008;
         public static final int buttonSearch=0x7f08000e;
         public static final int editText1=0x7f08000a;

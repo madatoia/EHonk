@@ -33,14 +33,7 @@
         android:layout_alignLeft="@+id/editText1"
         android:layout_below="@+id/editText1"
         android:text="Search" />
-    
-	<Button
-        android:id="@+id/buttonCall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/buttonSearch"
-        android:layout_below="@+id/buttonSearch"
-        android:text="Call" />
+
     
 
 </RelativeLayout>
