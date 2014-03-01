@@ -14,9 +14,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -25,18 +27,20 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class SearchCar extends Activity {
+	
+    // The minimum distance to change Updates in meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
 
-	TextView tv;
+    // The minimum time between updates in milliseconds
+    private static final long MIN_TIME_BW_UPDATES = 1; // 1 minute
+
 	Button search;
-	Button call;
 	EditText insertCarNumber;
-	public Location pos;
-	String phoneNo = "40747644830";
-	double latitude, longitude;
+	LocationManager locationManager = null;
+	ConnectivityManager connMgr = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,18 +49,14 @@ public class SearchCar extends Activity {
 		setContentView(R.layout.activity_search);
 		insertCarNumber = (EditText)findViewById(R.id.editText1);
 		
-		StrictMode.ThreadPolicy policy = new StrictMode.
-		ThreadPolicy.Builder().permitAll().build();
-		StrictMode.setThreadPolicy(policy);
-
-	    addListenerOnSearch();
+		addListenerOnSearch();
 	}
 	
 	@Override
 	protected void onStart() {
 	    super.onStart();
 	    
-	    LocationManager locationManager = 
+	    locationManager = 
 	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 	    boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 	    
@@ -92,7 +92,7 @@ public class SearchCar extends Activity {
         Log.v("isGPSEnabled", "=" + isGPSEnabled);
 	    
 	    // check network connection
-		ConnectivityManager connMgr = (ConnectivityManager) 
+		connMgr = (ConnectivityManager) 
 	            getSystemService(Context.CONNECTIVITY_SERVICE);
 	    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 	    boolean isNetworkEnabled = (networkInfo != null) && (networkInfo.isConnected());
@@ -125,16 +125,15 @@ public class SearchCar extends Activity {
 	    Log.v("isGPSEnabled", "=" + isNetworkEnabled);
 	}
 
-	private void readStream(InputStream in) {
+	private String readStream(InputStream in) {
 		  BufferedReader reader = null;
+		  String msg = "";
 		  try {
 		    reader = new BufferedReader(new InputStreamReader(in));
 		    String line = "";
-		    String msg = "";
 		    while ((line = reader.readLine()) != null) {
 		    	msg += line;
 		    }
-		    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
 		  } catch (IOException e) {
 		    e.printStackTrace();
 		  } finally {
@@ -146,6 +145,8 @@ public class SearchCar extends Activity {
 		        }
 		    }
 		  }
+		  
+		  return msg;
 		} 
 
 	public void addListenerOnSearch() {
@@ -153,64 +154,35 @@ public class SearchCar extends Activity {
 		search = (Button)findViewById(R.id.buttonSearch);
 		search.setOnClickListener(new OnClickListener() {
 
-		@Override
-		public void onClick(View v) {
-			boolean ok = true;
+			@Override
+			public void onClick(View v) {
+				boolean ok = true;
 			
-			String carNo = insertCarNumber.getText().toString();
-			// check carNo and phone
-			ok = Constants.checkCarNo(carNo);
-			if(!ok) {
-				Toast.makeText(getApplicationContext(), "Wrong format",
-						Toast.LENGTH_LONG).show();
-			}
-			else {
-				//http://141.85.223.25:3000
-				String addr = "http://141.85.223.25:3000/search.json";
-				URL url;
-				try {
-				    
-					url = new URL(addr);
-					HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-					conn.setUseCaches(false);
-					conn.setAllowUserInteraction(false);
-					conn.setRequestMethod("GET");
-					conn.addRequestProperty("car_number", carNo);
-					conn.connect();
-					
-					readStream(conn.getInputStream());
-					/*
-					AlertDialog.Builder alertDialog = new AlertDialog.Builder(SearchCar.this);
-					alertDialog.setMessage(conn.getResponseCode());
-			        // On pressing Settings button
-			        alertDialog.setPositiveButton("Ok",
-			                new DialogInterface.OnClickListener() {
-			                    public void onClick(DialogInterface dialog, int which) {
-			                    	dialog.cancel();
-			                    }
-			                });
-					alertDialog.show();
-					*/
+				String carNo = insertCarNumber.getText().toString();
+				// 	check carNo and phone
+				ok = Constants.checkCarNo(carNo);
+				
+				/*
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER,
+                        MIN_TIME_BW_UPDATES,
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new MyLocationListener());
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                String longitude = ""+location.getLongitude();
+                String latitude = ""+location.getLatitude();
+                */
+				String longitude = "22";
+				String latitude = "44";
+				if(!ok) {
 					Toast.makeText(getApplicationContext(), "Wrong format",
 							Toast.LENGTH_LONG).show();
-					System.out.println(conn.getResponseCode());
-					System.out.println(conn.getResponseMessage());
-					} catch (MalformedURLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						System.err.println(e.getMessage());
-						e.printStackTrace();
-					}
-			
+				}
+				else {
+					String addr = "http://141.85.223.25:3000/search.json";
+					new RequestTask().execute(addr, carNo, latitude, longitude);
 				}
 			}
-		
-		
 		});
-		
-		
 	}
 	
 	@Override
@@ -219,4 +191,84 @@ public class SearchCar extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+    private class RequestTask extends AsyncTask<String, Void, String> {
+        
+    	HttpURLConnection conn = null;
+    	InputStream is = null;
+    	String message = null;
+    	@Override
+        protected String doInBackground(String... urls) {
+              
+            // params[0] is the url.
+        	// params[1] is the car_number
+    		// params[2] is the latitude
+    		// params[3] is the longitude
+            URL url;
+			try {
+				String url_query = urls[0];
+				url_query += "?car_number=" + urls[1] + "&lat=" + urls[2] + "&long=" + urls[3];
+				url = new URL(url_query);
+				conn = (HttpURLConnection) url.openConnection();
+				conn.setUseCaches(false);
+				conn.setAllowUserInteraction(false);
+				conn.setRequestMethod("GET");
+				conn.connect();
+				is = conn.getInputStream();
+				message = readStream(is);
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return "Request Sent!";
+		}
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+        	if( conn != null && message != null) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(SearchCar.this);
+				builder.setMessage(message)
+				       .setCancelable(false)
+				       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				        	   dialog.cancel();
+				           }
+				       });
+				AlertDialog alert = builder.create();
+				alert.show();
+				if(is!=null){
+					try {
+						is.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+        	}
+       }
+    }
+    
+    private class MyLocationListener implements LocationListener {
+
+        @Override
+        public void onLocationChanged(Location loc) {
+            
+        	Toast.makeText(
+                    getBaseContext(),
+                    "Location changed: Lat: " + loc.getLatitude() + " Lng: "
+                        + loc.getLongitude(), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {}
+
+        @Override
+        public void onProviderEnabled(String provider) {}
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+    }
+
 }
