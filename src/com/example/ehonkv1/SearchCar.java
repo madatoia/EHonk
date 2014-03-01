@@ -1,57 +1,153 @@
 package com.example.ehonkv1;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
+import android.os.StrictMode;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 public class SearchCar extends Activity {
+	
+    // The minimum distance to change Updates in meters
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 10 meters
 
-	TextView tv;
+    // The minimum time between updates in milliseconds
+    private static final long MIN_TIME_BW_UPDATES = 1; // 1 minute
+
 	Button search;
-	Button call;
 	EditText insertCarNumber;
-	public Location pos;
-	String phoneNo = "40747644830";
-	double latitude, longitude;
+	LocationManager locationManager = null;
+	ConnectivityManager connMgr = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		setContentView(R.layout.activity_search);
-
 		insertCarNumber = (EditText)findViewById(R.id.editText1);
 		
-		GPSTracker tracker = new GPSTracker(this);
-	    if (tracker.canGetLocation() == false) {
-	        tracker.showSettingsAlert();
-	    } else {
-	        latitude = tracker.getLatitude();
-	        longitude = tracker.getLongitude();
-	        pos = tracker.getLocation();
-	        
-	        System.out.println("lat:"+latitude);
-	        System.out.println("long:"+longitude);
-	        tracker.stopUsingGPS();
-	       
-	    }	
-	    
-	    addListenerOnSearch();
-		addListenerOnCall();
-		
+		addListenerOnSearch();
 	}
+	
+	@Override
+	protected void onStart() {
+	    super.onStart();
+	    
+	    locationManager = 
+	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+	    boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+	    
+	    if (!isGPSEnabled) {
+	        // Create a dialog here that requests the user to enable GPS, and use an intent
+	        // with the android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS action
+	        // to take the user to the Settings screen to enable GPS when they click "OK"
+	        // Setting Dialog Message
+			AlertDialog.Builder alertDialog = new AlertDialog.Builder(SearchCar.this);
+			alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
+
+	        // On pressing Settings button
+	        alertDialog.setPositiveButton("Settings",
+	                new DialogInterface.OnClickListener() {
+	                    public void onClick(DialogInterface dialog, int which) {
+	                        Intent intent = new Intent(
+	                        		android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+	                        SearchCar.this.startActivity(intent);
+	                    }
+	                });
+
+	        // on pressing cancel button
+	        alertDialog.setNegativeButton("Cancel",
+	                new DialogInterface.OnClickListener() {
+	                    public void onClick(DialogInterface dialog, int which) {
+	                        dialog.cancel();
+	                    }
+	                });
+
+	        // Showing Alert Message
+	        alertDialog.show();
+	    }
+        Log.v("isGPSEnabled", "=" + isGPSEnabled);
+	    
+	    // check network connection
+		connMgr = (ConnectivityManager) 
+	            getSystemService(Context.CONNECTIVITY_SERVICE);
+	    NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+	    boolean isNetworkEnabled = (networkInfo != null) && (networkInfo.isConnected());
+	    
+	    if (!isNetworkEnabled) {
+	    	AlertDialog.Builder alertDialog = new AlertDialog.Builder(SearchCar.this);
+			alertDialog.setMessage("Network is not enabled. Do you want to go to settings menu?");
+
+	        // On pressing Settings button
+	        alertDialog.setPositiveButton("Settings",
+	                new DialogInterface.OnClickListener() {
+	                    public void onClick(DialogInterface dialog, int which) {
+	                        Intent intent = new Intent(
+	                        		android.provider.Settings.ACTION_WIRELESS_SETTINGS);
+	                        SearchCar.this.startActivity(intent);
+	                    }
+	                });
+
+	        // on pressing cancel button
+	        alertDialog.setNegativeButton("Cancel",
+	                new DialogInterface.OnClickListener() {
+	                    public void onClick(DialogInterface dialog, int which) {
+	                        dialog.cancel();
+	                    }
+	                });
+
+	        // Showing Alert Message
+	        alertDialog.show();
+	    }
+	    Log.v("isGPSEnabled", "=" + isNetworkEnabled);
+	}
+
+	private String readStream(InputStream in) {
+		  BufferedReader reader = null;
+		  String msg = "";
+		  try {
+		    reader = new BufferedReader(new InputStreamReader(in));
+		    String line = "";
+		    while ((line = reader.readLine()) != null) {
+		    	msg += line;
+		    }
+		  } catch (IOException e) {
+		    e.printStackTrace();
+		  } finally {
+		    if (reader != null) {
+		      try {
+		        reader.close();
+		      } catch (IOException e) {
+		        e.printStackTrace();
+		        }
+		    }
+		  }
+		  
+		  return msg;
+		} 
 
 	public void addListenerOnSearch() {
 
@@ -60,44 +156,119 @@ public class SearchCar extends Activity {
 
 			@Override
 			public void onClick(View v) {
-				// check carNo and phone
 				boolean ok = true;
+			
 				String carNo = insertCarNumber.getText().toString();
-				
+				// 	check carNo and phone
 				ok = Constants.checkCarNo(carNo);
 				
-				if (ok == false) {
+				/*
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER,
+                        MIN_TIME_BW_UPDATES,
+                        MIN_DISTANCE_CHANGE_FOR_UPDATES, new MyLocationListener());
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                String longitude = ""+location.getLongitude();
+                String latitude = ""+location.getLatitude();
+                */
+				String longitude = "22";
+				String latitude = "44";
+				if(!ok) {
 					Toast.makeText(getApplicationContext(), "Wrong format",
 							Toast.LENGTH_LONG).show();
-				} else {
-					// call
-					System.out.println("call");
+				}
+				else {
+					String addr = "http://141.85.223.25:3000/search.json";
+					new RequestTask().execute(addr, carNo, latitude, longitude);
 				}
 			}
 		});
 	}
 	
-	public void addListenerOnCall() {
-
-		call = (Button) findViewById(R.id.buttonCall);
-		
-		call.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if(!phoneNo.equals("")){
-					//sun 
-					Intent callIntent = new Intent(Intent.ACTION_CALL);
-					callIntent.setData(Uri.parse("tel:"+phoneNo));
-					startActivity(callIntent);
-				}
-			}
-		});
-	}
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+    private class RequestTask extends AsyncTask<String, Void, String> {
+        
+    	HttpURLConnection conn = null;
+    	InputStream is = null;
+    	String message = null;
+    	@Override
+        protected String doInBackground(String... urls) {
+              
+            // params[0] is the url.
+        	// params[1] is the car_number
+    		// params[2] is the latitude
+    		// params[3] is the longitude
+            URL url;
+			try {
+				String url_query = urls[0];
+				url_query += "?car_number=" + urls[1] + "&lat=" + urls[2] + "&long=" + urls[3];
+				url = new URL(url_query);
+				conn = (HttpURLConnection) url.openConnection();
+				conn.setUseCaches(false);
+				conn.setAllowUserInteraction(false);
+				conn.setRequestMethod("GET");
+				conn.connect();
+				is = conn.getInputStream();
+				message = readStream(is);
+			} catch (MalformedURLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return "Request Sent!";
+		}
+        // onPostExecute displays the results of the AsyncTask.
+        @Override
+        protected void onPostExecute(String result) {
+        	if( conn != null && message != null) {
+				AlertDialog.Builder builder = new AlertDialog.Builder(SearchCar.this);
+				builder.setMessage(message)
+				       .setCancelable(false)
+				       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				           public void onClick(DialogInterface dialog, int id) {
+				        	   dialog.cancel();
+				           }
+				       });
+				AlertDialog alert = builder.create();
+				alert.show();
+				if(is!=null){
+					try {
+						is.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+        	}
+       }
+    }
+    
+    private class MyLocationListener implements LocationListener {
+
+        @Override
+        public void onLocationChanged(Location loc) {
+            
+        	Toast.makeText(
+                    getBaseContext(),
+                    "Location changed: Lat: " + loc.getLatitude() + " Lng: "
+                        + loc.getLongitude(), Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {}
+
+        @Override
+        public void onProviderEnabled(String provider) {}
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {}
+    }
+
 }
