@@ -28,22 +28,20 @@ public final class R {
         public static final int selector=0x7f020004;
     }
     public static final class id {
-        public static final int action_settings=0x7f08000f;
+        public static final int action_settings=0x7f08000d;
         public static final int addNewCar=0x7f080002;
-        public static final int button1=0x7f08000d;
-        public static final int buttonActivate=0x7f080007;
-        public static final int buttonDeactivate=0x7f080008;
-        public static final int buttonSearch=0x7f08000e;
-        public static final int editText1=0x7f08000a;
-        public static final int editText2=0x7f08000c;
+        public static final int button1=0x7f08000b;
+        public static final int buttonActivate=0x7f080005;
+        public static final int buttonDeactivate=0x7f080006;
+        public static final int buttonSearch=0x7f08000c;
+        public static final int editText1=0x7f080008;
+        public static final int editText2=0x7f08000a;
         public static final int newCarEditText=0x7f080001;
-        public static final int spinner1=0x7f080005;
-        public static final int tableRow1=0x7f080000;
-        public static final int tableRow2=0x7f080003;
-        public static final int tableRow3=0x7f080004;
-        public static final int tableRow4=0x7f080006;
-        public static final int textView1=0x7f080009;
-        public static final int textView2=0x7f08000b;
+        public static final int r1=0x7f080000;
+        public static final int r2=0x7f080004;
+        public static final int spinner1=0x7f080003;
+        public static final int textView1=0x7f080007;
+        public static final int textView2=0x7f080009;
     }
     public static final class layout {
         public static final int activate_activity=0x7f030000;

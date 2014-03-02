@@ -2,101 +2,63 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="left"
-    android:paddingBottom="@dimen/activity_vertical_margin"
+       android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:gravity="center_horizontal"
     tools:context=".MainActivity" >
-    
-	<TableLayout
-        android:layout_width="wrap_content"
+
+    <LinearLayout
+        android:id="@+id/r1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp" >
+        android:layout_marginTop="10dp">
 
-        <TableRow
-            android:id="@+id/tableRow1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-			
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
-
-                <EditText
-                    android:id="@+id/newCarEditText"
-                    android:layout_width="171dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="left"
-                    android:layout_weight="0.51"
-                    android:ems="10"
-                    android:inputType="text" >
-
-                    <requestFocus />
-                </EditText>
-
-                <Button
-                    android:id="@+id/addNewCar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center"
-                    android:text="New Car" />
-            </LinearLayout>
-
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" >
-		    <Spinner
-		        android:id="@+id/spinner1"
-		        android:layout_width="wrap_content"
-                 android:layout_height="wrap_content"
-                 android:layout_marginTop="10dp" />
-        
-        </TableRow>
-
-        <TableRow
-            android:id="@+id/tableRow4"
+        <EditText
+            android:id="@+id/newCarEditText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="250dp" >
+            android:layout_weight="1.02"
+            android:ems="10"
+            android:inputType="text" />
 
-             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" >
+        <Button
+            android:id="@+id/addNewCar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="New Car" />
+    </LinearLayout>
 
-	            <Button
-	                android:id="@+id/buttonActivate"
-	                android:layout_width="0dp"
-	                android:layout_height="match_parent"
-	                android:layout_gravity="left"
-	                android:layout_weight="1"
-	                android:text="Activate" />
+    <Spinner
+        android:id="@+id/spinner1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/r1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp" />
 
-	            <Button
-	                android:id="@+id/buttonDeactivate"
-	                android:layout_width="0dp"
-	                android:layout_height="match_parent"
-	                android:layout_weight="1"
-	                android:text="Deactivate" />
+    <LinearLayout
+        android:id="@+id/r2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/spinner1" 
+         android:layout_marginTop="230dp">
 
-	          </LinearLayout>
-        </TableRow>
+        <Button
+            android:id="@+id/buttonActivate"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Activate" />
 
-    </TableLayout>
-
-   
-   
+        <Button
+            android:id="@+id/buttonDeactivate"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Deactivate" />
+    </LinearLayout>
 
 </RelativeLayout>
