@@ -10,6 +10,8 @@ import java.net.URL;
 
 import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,10 +32,28 @@ public class Alarm extends BroadcastReceiver
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         PowerManager.WakeLock wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "");
         wl.acquire();
-
+        
 		String addr = "http://141.85.223.25:3000/get_messages.json";
 		new PollingTask().execute(addr, Alarm.id);
-
+		
+		
+		
+		//Intent notification_intent = new Intent(context, NotificationAlert.class);
+		//context.startActivity(notification_intent);
+		
+		final NotificationManager mgr=
+	            (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+	        Notification note=new Notification(R.drawable.ic_launcher,
+	                                                        "Android Example Status message!",
+	                                                        System.currentTimeMillis());
+	         
+	        note.setLatestEventInfo(context, "Android Example Notification Title",
+	                                "This is the android example notification message", null);
+	         
+	        //After uncomment this line you will see number of notification arrived
+	        note.number=2;
+	        mgr.notify(111, note);
+		
         wl.release();
      }
 
@@ -112,6 +132,9 @@ public class Alarm extends BroadcastReceiver
         @Override
         protected void onPostExecute(String result) {
         	if( conn != null && message != null) {
+        		
+        		
+
         		/*
 				AlertDialog.Builder builder = new AlertDialog.Builder(SearchCar.this);
 				builder.setMessage(message)
