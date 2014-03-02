@@ -24,6 +24,11 @@ import android.widget.Toast;
 
 public class Alarm extends BroadcastReceiver
 {    
+	
+	private static String NO_NOTIFICATION = "You have no new notifications!";
+	private static String NOTIFICATION_ERROR1 = "An error occured during get messages, try again!";
+	private static String NOTIFICATION_ERROR2 = "Invalid get messages call, try again!";
+	
 	static String id = "";
 	
 	 @Override
@@ -34,25 +39,7 @@ public class Alarm extends BroadcastReceiver
         wl.acquire();
         
 		String addr = "http://141.85.223.25:3000/get_messages.json";
-		new PollingTask().execute(addr, Alarm.id);
-		
-		
-		
-		//Intent notification_intent = new Intent(context, NotificationAlert.class);
-		//context.startActivity(notification_intent);
-		
-		final NotificationManager mgr=
-	            (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
-	        Notification note=new Notification(R.drawable.ic_launcher,
-	                                                        "Android Example Status message!",
-	                                                        System.currentTimeMillis());
-	         
-	        note.setLatestEventInfo(context, "Android Example Notification Title",
-	                                "This is the android example notification message", null);
-	         
-	        //After uncomment this line you will see number of notification arrived
-	        note.number=2;
-	        mgr.notify(111, note);
+		new PollingTask().execute(addr, Alarm.id, context);
 		
         wl.release();
      }
@@ -99,26 +86,28 @@ public class Alarm extends BroadcastReceiver
 	}
  	
 	
-    private class PollingTask extends AsyncTask<String, Void, String> {
+    private class PollingTask extends AsyncTask<Object, Void, String> {
         
     	HttpURLConnection conn = null;
     	InputStream is = null;
     	String message = null;
+    	Context context = null;
     	@Override
-        protected String doInBackground(String... params) {
+        protected String doInBackground(Object... params) {
               
         // params[0] is the url.
     		URL url;
+    		context = (Context)params[2];
     		try {
-    			String url_query = params[0] + "?blocking_client_id=" + params[1];
+    			String url_query = ((String)params[0]) + "?blocking_client_id=" + ((String)params[1]);
     			url = new URL(url_query);
     			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     			conn.setUseCaches(false);
     			conn.setAllowUserInteraction(false);
     			conn.setRequestMethod("GET");
     			conn.connect();
-    			InputStream is = conn.getInputStream();
-    			String message = readStream(is);
+    			is = conn.getInputStream();
+    			message = readStream(is);
     		} catch (MalformedURLException e) {
     			// TODO Auto-generated catch block
     			e.printStackTrace();
@@ -131,29 +120,18 @@ public class Alarm extends BroadcastReceiver
         // onPostExecute displays the results of the AsyncTask.
         @Override
         protected void onPostExecute(String result) {
-        	if( conn != null && message != null) {
+        	//if( conn != null && message != null && context != null) {
         		
-        		
-
-        		/*
-				AlertDialog.Builder builder = new AlertDialog.Builder(SearchCar.this);
-				builder.setMessage(message)
-				       .setCancelable(false)
-				       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				           public void onClick(DialogInterface dialog, int id) {
-				        	   dialog.cancel();
-				           }
-				       });
-				AlertDialog alert = builder.create();
-				alert.show();
-				if(is!=null){
-					try {
-						is.close();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				*/
+        	if( message != null && !message.equals(NO_NOTIFICATION) 
+        			&& !message.equals(NOTIFICATION_ERROR1) && !message.equals(NOTIFICATION_ERROR2)) {
+        		final NotificationManager mgr = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
+       	        Notification note=new Notification(R.drawable.ic_launcher, message, System.currentTimeMillis());
+       	         
+       	        note.setLatestEventInfo(context, message, message, null);
+       	         
+       	        //After uncomment this line you will see number of notification arrived
+       	        note.number=2;
+       	        mgr.notify(111, note);
         	}
        }
         
