@@ -12,7 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -46,10 +48,12 @@ public class Activate extends FragmentActivity implements LocationListener {
     private static final String REGISTER_ERROR1 = "Invalid registration, try again!";
     private static final String REGISTER_ERROR2 = "An error occured during registration, try again!";
     private static final String UNREGISTER_ERROR1 = "An error occured during unregistration, try again!";
-    private static final String UNREGISTER_ERROR2 = "Unregistered!";
+    private static final String UNREGISTER_ERROR2 = "Invalid unregistration, try again!";
     
 	LocationManager locationManager = null;
 	ConnectivityManager connMgr = null;
+	
+	Alarm alarm = null;
 
 	Spinner spin;
 	Button activate;
@@ -94,6 +98,8 @@ public class Activate extends FragmentActivity implements LocationListener {
 			addListenerOnSearch();
 			addListenerOnView();
 		}
+		
+		alarm = new Alarm();
 	}
 	
 	@Override
@@ -102,6 +108,11 @@ public class Activate extends FragmentActivity implements LocationListener {
 		if (locationManager != null) {
             locationManager.removeUpdates(this);
         }
+	}
+	
+	@Override
+	protected void onDestroy() {
+		alarm.CancelAlarm(Activate.this.getApplicationContext());
 	}
 	
 	@Override
@@ -259,6 +270,7 @@ public class Activate extends FragmentActivity implements LocationListener {
    					SharedPreferences.Editor editor = getPreferences(MODE_PRIVATE).edit();
     				editor.putString("id", id);
     				editor.commit();
+    				alarm.SetAlarm(Activate.this.getApplicationContext(), id);
         		}
         	}
        }
@@ -421,6 +433,7 @@ public class Activate extends FragmentActivity implements LocationListener {
 				} else {
 					String addr = "http://141.85.223.25:3000/unregister.json";
 					new UnRegisterTask().execute(addr, restoredText);
+					alarm.CancelAlarm(Activate.this.getApplicationContext());
 				}
 			}
 		});
